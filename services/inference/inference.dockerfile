@@ -3,13 +3,6 @@
 # This image runs a FastAPI-based REST API using Uvicorn.
 # It is intended for serving machine learning models or
 # backend services in a containerized environment.
-#
-# Application Server:
-#   - FastAPI (ASGI framework)
-#   - Uvicorn (ASGI server)
-#
-# Network:
-#   - Exposes HTTP API on port 8000
 
 
 # Base image

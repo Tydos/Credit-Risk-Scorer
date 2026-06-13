@@ -1,6 +1,6 @@
 import logging
 import torch
-from src.schema import validate_payload
+from src.schemas import validate_payload
 
 
 def predictloan(model, request: validate_payload = None):

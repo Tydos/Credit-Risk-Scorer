@@ -1,11 +1,8 @@
-#data-split configuration
-data_split:
-  data_length: 500000
+dataset:
+  data_length: 1000
   target_column: loan_paid_back
-
   test_size_1: 0.3 #70:30 train test split
   test_size_2: 0.5 #50:50 split between 30% of test set as test and validation
-
   stratify: true
   random_state: 11
 

@@ -3,7 +3,7 @@ import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request
 from src.predict import predictloan
-from src.schema import validate_payload
+from src.schemas import validate_payload
 from src.load_inference_model import load_production_model
 
 logging.basicConfig(level=logging.INFO)

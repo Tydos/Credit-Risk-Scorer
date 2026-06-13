@@ -6,10 +6,6 @@
 #   - Stores experiment metadata (e.g., PostgreSQL)
 # Artifact Store:
 #   - Stores model artifacts (e.g., S3)
-#
-# Environment Variables:
-#   - MLFLOW_BACKEND_STORE_URI
-#   - ARTIFACT_ROOT
 
 FROM python:3.11-slim
 

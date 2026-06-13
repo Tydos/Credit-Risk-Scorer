@@ -22,3 +22,5 @@ def register_and_promote(model, run_id, test_fn):
         logging.info(f"Model version {latest_version} is now in Production.")
     else:
         logging.info("Dummy test failed. Model not promoted.")
+
+    return latest_version

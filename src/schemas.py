@@ -1,7 +1,9 @@
+# This module defines the data schemas for configuration and request/response using Pydantic.
 from pydantic import BaseModel, Field
 
 
-class DataSplitConfig(BaseModel):
+# Configuration schemas for dataset and models
+class DatasetConfig(BaseModel):
     target_column: str
     test_size_1: float = Field(gt=0, lt=1)
     test_size_2: float = Field(gt=0, lt=1)
@@ -20,11 +22,18 @@ class PyTorchConfig(BaseModel):
     dropout: float = Field(ge=0, lt=1)
 
 
+class MLflowConfig(BaseModel):
+    tracking_uri: str
+    experiment_name: str
+
+
 class validate_configs(BaseModel):
-    data_split: DataSplitConfig
+    dataset: DatasetConfig
     pytorch: PyTorchConfig
+    mlflow: MLflowConfig
 
 
+# Schema for API request payload validation
 class validate_payload(BaseModel):
     request: list[float] = Field(
         ...,
