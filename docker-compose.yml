@@ -110,6 +110,8 @@ services:
     environment:
       <<: *env
       MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./config:/app/config:ro
     ports:
       - "8000:8000"
     depends_on:

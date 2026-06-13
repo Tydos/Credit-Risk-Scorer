@@ -1,6 +1,7 @@
 # This script orchestrates the entire training pipeline for a loan payback prediction model.
 import logging
 import os
+from pathlib import Path
 import pickle
 import mlflow
 import torch
@@ -13,7 +14,7 @@ from src.split_data import split_dataset
 from src.process_data import process_data
 from src.config_loader import load_config
 from src.test_model import dummy_test
-from src.read_data import read_data
+from src.read_data import read_csv_dataset
 from src.train import train_model
 from src.mlflow_registry import register_and_promote
 from src.loan_dataset import loan_dataset
@@ -34,7 +35,7 @@ try:
         config.pytorch,
         config.mlflow,
     )
-    df = read_data(dataset_config.data_length)
+    df = read_csv_dataset(Path("dataset/train.csv"), dataset_config.data_length)
     mlflow.set_tracking_uri(
         os.getenv("MLFLOW_TRACKING_URI", mlflow_config.tracking_uri)
     )

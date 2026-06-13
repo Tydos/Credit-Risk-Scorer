@@ -1,5 +1,6 @@
 # This module defines the data schemas for configuration and request/response using Pydantic.
 from pydantic import BaseModel, Field
+from typing import Annotated
 
 
 # Configuration schemas for dataset and models
@@ -27,15 +28,20 @@ class MLflowConfig(BaseModel):
     experiment_name: str
 
 
-class validate_configs(BaseModel):
+class InferenceConfig(BaseModel):
+    prediction_threshold: float
+
+
+class ValidateConfig(BaseModel):
     dataset: DatasetConfig
     pytorch: PyTorchConfig
     mlflow: MLflowConfig
+    inference: InferenceConfig
 
 
 # Schema for API request payload validation
-class validate_payload(BaseModel):
-    request: list[float] = Field(
+class ValidatePayload(BaseModel):
+    features: list[float] = Field(
         ...,
         min_items=11,
         max_items=11,
