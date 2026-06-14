@@ -10,14 +10,12 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 
-from src.split_data import split_dataset
-from src.process_data import process_data
-from src.config_loader import load_config
-from src.test_model import dummy_test
-from src.read_data import read_csv_dataset
-from src.train import train_model
-from src.mlflow_registry import register_and_promote
-from src.loan_dataset import loan_dataset
+from data import split_dataset, read_csv_dataset
+from process_data import process_data
+from promote_to_production import register_and_promote, dummy_test
+from train_model import train_model
+from loan_dataset import loan_dataset
+from src.config import load_config
 from src.model import loan_predictor
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

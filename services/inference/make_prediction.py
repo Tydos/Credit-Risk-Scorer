@@ -1,11 +1,12 @@
 import time
 import torch
 import logging
-from pydantic import BaseModel
-from src.schemas import ValidatePayload
+from src.config import ValidatePayload
+from dataclasses import dataclass
 
 
-class PredictionOutput(BaseModel):
+@dataclass
+class PredictionOutput:
     prediction: int
     confidence: float
     model_latency_sec: float

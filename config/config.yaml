@@ -18,6 +18,8 @@ pytorch:
 mlflow:
   tracking_uri: http://localhost:5000
   experiment_name: LoanPayback
+  model_name: LoanPayback
+  model_uri: models:/LoanPayback/Production
 
 inference:
   prediction_threshold: 0.5

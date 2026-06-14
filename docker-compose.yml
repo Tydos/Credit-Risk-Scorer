@@ -114,9 +114,6 @@ services:
       - ./config:/app/config:ro
     ports:
       - "8000:8000"
-    depends_on:
-      train:
-        condition: service_completed_successfully
 
 volumes:
   postgres-data:

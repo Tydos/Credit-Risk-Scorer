@@ -1,5 +1,14 @@
 import logging
+import torch
 import mlflow.pytorch
+
+
+def dummy_test(model):
+    test_input = torch.zeros(1, 11)
+    model.eval()
+    with torch.no_grad():
+        output = model(test_input)
+    return torch.isfinite(output).all().item()
 
 
 def register_and_promote(model, run_id, test_fn):

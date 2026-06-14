@@ -1,9 +1,7 @@
-# This module defines the data schemas for configuration and request/response using Pydantic.
+import yaml
 from pydantic import BaseModel, Field
-from typing import Annotated
 
 
-# Configuration schemas for dataset and models
 class DatasetConfig(BaseModel):
     target_column: str
     test_size_1: float = Field(gt=0, lt=1)
@@ -26,6 +24,8 @@ class PyTorchConfig(BaseModel):
 class MLflowConfig(BaseModel):
     tracking_uri: str
     experiment_name: str
+    model_name: str
+    model_uri: str
 
 
 class InferenceConfig(BaseModel):
@@ -39,7 +39,15 @@ class ValidateConfig(BaseModel):
     inference: InferenceConfig
 
 
-# Schema for API request payload validation
+def load_config(path: str | None) -> ValidateConfig:
+    if path is None:
+        raise ValueError("Config file path must be provided.")
+
+    with open(path, "r") as f:
+        data = yaml.safe_load(f)
+        return ValidateConfig(**data)
+
+
 class ValidatePayload(BaseModel):
     features: list[float] = Field(
         ...,
