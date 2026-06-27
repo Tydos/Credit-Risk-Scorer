@@ -26,4 +26,4 @@ class loan_dataset(Dataset):
         if self.train:
             return self.features[index], self.labels[index]
         else:
-            return self.features[index]
+            return self.features[index]  # No labels for inference

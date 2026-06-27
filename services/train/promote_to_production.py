@@ -11,9 +11,15 @@ def dummy_test(model):
     return torch.isfinite(output).all().item()
 
 
-def register_and_promote(model, run_id, test_fn):
+def register_and_promote(model, run_id, test_fn, input_dim=11):
     MODEL_NAME = "LoanPayback"
-    mlflow.pytorch.log_model(model, artifact_path="models")
+    input_example = torch.zeros(1, input_dim, dtype=torch.float32)
+    mlflow.pytorch.log_model(
+        model,
+        name="models",
+        input_example=input_example,
+        serialization_format="pickle",
+    )
     result = mlflow.register_model(f"runs:/{run_id}/models", MODEL_NAME)
     logging.info(f"Registered {MODEL_NAME} version {result.version}")
 

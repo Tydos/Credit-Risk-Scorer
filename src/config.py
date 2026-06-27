@@ -8,7 +8,7 @@ class DatasetConfig(BaseModel):
     test_size_2: float = Field(gt=0, lt=1)
     stratify: bool
     random_state: int
-    data_length: int
+    data_length: int | None = None
 
 
 class PyTorchConfig(BaseModel):
@@ -51,20 +51,40 @@ def load_config(path: str | None) -> ValidateConfig:
 class ValidatePayload(BaseModel):
     features: list[float] = Field(
         ...,
-        min_items=11,
-        max_items=11,
+        min_length=11,
+        max_length=11,
         description="input strictly 11 features, and check for all float values",
-        example=[
-            -1.0334,
-            2.9195,
-            -0.3585,
-            -0.3576,
-            -0.3022,
-            1.0000,
-            1.0000,
-            0.0000,
-            0.0000,
-            4.0000,
-            17.0000,
-        ],
+        json_schema_extra={
+            "example": [
+                -1.0334,
+                2.9195,
+                -0.3585,
+                -0.3576,
+                -0.3022,
+                1.0000,
+                1.0000,
+                0.0000,
+                0.0000,
+                4.0000,
+                17.0000,
+            ]
+        },
     )
+
+
+class LoanApplicationPayload(BaseModel):
+    annual_income: float = Field(..., gt=0, description="Borrower's annual income in USD")
+    debt_to_income_ratio: float = Field(
+        ..., ge=0, le=1, description="Debt-to-income ratio (0-1)"
+    )
+    credit_score: int = Field(..., ge=300, le=850, description="FICO-style credit score")
+    loan_amount: float = Field(..., gt=0, description="Requested loan amount in USD")
+    interest_rate: float = Field(
+        ..., ge=0, le=1, description="Annual interest rate as a decimal (e.g. 0.12)"
+    )
+    gender: str = Field(..., description="Applicant gender")
+    marital_status: str = Field(..., description="Marital status")
+    education_level: str = Field(..., description="Highest education level")
+    employment_status: str = Field(..., description="Employment status")
+    loan_purpose: str = Field(..., description="Purpose of the loan")
+    grade_subgrade: str = Field(..., description="Loan grade/subgrade (e.g. B3)")

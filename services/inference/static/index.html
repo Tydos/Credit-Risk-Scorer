@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Credit Risk Scoring</title>
+    <link rel="stylesheet" href="/assets/styles.css" />
+  </head>
+  <body>
+    <div class="page">
+      <section class="splash">
+        <h1>Credit Risk Scoring</h1>
+        <p class="splash-lead">
+          This demo scores loan applications using income, debt burden, credit score, and loan
+          terms — the same inputs underwriting teams already review. It estimates payback vs.
+          default risk to support early screening, not automated credit decisions.
+        </p>
+        <ul class="splash-points">
+          <li>Instant payback and default probabilities for each application</li>
+          <li>Validated against simple policy rules and stronger benchmarks</li>
+          <li>Trained on ~594,000 historical loan records</li>
+        </ul>
+        <nav class="splash-nav" aria-label="Page sections">
+          <a href="#try">Score an application</a>
+          <a href="#models">Model validation</a>
+        </nav>
+        <p class="disclaimer">
+          Illustrative demo only — not a credit decision, adverse action notice, or substitute for
+          human underwriting or compliance review.
+        </p>
+      </section>
+
+      <section class="section" id="try">
+        <div class="section-heading">
+          <h2>Score an application</h2>
+          <p class="muted section-intro">
+            Enter a borrower profile or load the sample file, then submit for a risk read from the
+            current production model.
+          </p>
+        </div>
+
+        <section class="panel">
+          <h3>Application file</h3>
+          <p class="muted">All fields required.</p>
+
+          <form id="applicationForm">
+            <fieldset>
+              <legend>Borrower &amp; loan terms</legend>
+              <div class="grid-2">
+                <label>
+                  Annual income (USD)
+                  <input type="number" name="annual_income" min="0" step="1000" required placeholder="72000" />
+                </label>
+                <label>
+                  Debt-to-income ratio
+                  <input type="number" name="debt_to_income_ratio" min="0" max="1" step="0.01" required placeholder="0.28" />
+                  <span class="field-hint">Enter as decimal: 0.28 = 28%</span>
+                </label>
+                <label>
+                  Credit score
+                  <input type="number" name="credit_score" min="300" max="850" required placeholder="710" />
+                </label>
+                <label>
+                  Requested loan amount (USD)
+                  <input type="number" name="loan_amount" min="0" step="500" required placeholder="15000" />
+                </label>
+                <label>
+                  Interest rate (APR)
+                  <input type="number" name="interest_rate" min="0" max="1" step="0.001" required placeholder="0.118" />
+                  <span class="field-hint">Enter as decimal: 0.118 = 11.8%</span>
+                </label>
+                <label>
+                  Loan grade
+                  <select name="grade_subgrade" required></select>
+                  <span class="field-hint">A = lowest risk band, G = highest</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Applicant profile</legend>
+              <div class="grid-2">
+                <label>Gender<select name="gender" required></select></label>
+                <label>Marital status<select name="marital_status" required></select></label>
+                <label>Education level<select name="education_level" required></select></label>
+                <label>Employment status<select name="employment_status" required></select></label>
+                <label class="full">Loan purpose<select name="loan_purpose" required></select></label>
+              </div>
+            </fieldset>
+
+            <div class="actions">
+              <button type="button" class="btn secondary" id="loadSampleBtn">Load sample</button>
+              <button type="submit" class="btn primary" id="submitBtn">Score application</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel">
+          <h3>Risk assessment</h3>
+          <p class="muted" id="resultSubtitle">Submit an application to see the risk read.</p>
+
+          <div id="resultEmpty" class="empty">
+            <p>Complete the form above and click <strong>Score application</strong>, or load the sample first.</p>
+          </div>
+
+          <div class="hidden" id="resultContent">
+            <div class="banner" id="riskBanner">
+              <p class="label">Risk tier</p>
+              <h4 id="riskTier">—</h4>
+              <p class="label">Suggested next step</p>
+              <p id="riskHeadline">—</p>
+              <p id="riskSummary">—</p>
+            </div>
+
+            <div class="grid-2 stats">
+              <div class="stat"><span>Estimated payback probability</span><strong id="paidBackProbability">—</strong></div>
+              <div class="stat"><span>Estimated default probability</span><strong id="defaultProbability">—</strong></div>
+              <div class="stat"><span>Primary read</span><strong id="predictionLabel">—</strong></div>
+              <div class="stat"><span>Policy threshold</span><strong>50% payback probability</strong></div>
+            </div>
+
+            <div class="bar">
+              <p class="bar-title muted">Repayment likelihood</p>
+              <div class="bar-track"><div class="bar-fill" id="probabilityFill"></div></div>
+              <div class="bar-labels"><span>Higher default risk</span><span>Higher payback likelihood</span></div>
+            </div>
+          </div>
+
+          <div class="alert hidden" id="errorAlert"></div>
+        </section>
+      </section>
+
+      <section class="section" id="models">
+        <div class="section-heading">
+          <h2>Model validation</h2>
+          <p class="muted section-intro">
+            How well each approach <strong>ranks</strong> likely paybacks above likely defaults on a
+            held-out validation sample (~89,000 loans from the same historical book). Higher scores
+            mean better separation — useful for comparing policy rules to the production model.
+          </p>
+          <p class="metric-note muted">
+            Historical book: ~594,000 loan records · 70% train / 15% validation / 15% test ·
+            methodology and technical metrics are documented in the project README.
+          </p>
+        </div>
+
+        <div class="panel">
+          <p class="muted" id="baselinesSubtitle">Loading validation results...</p>
+          <div class="chart-wrap">
+            <canvas id="benchmarkChart" role="img" aria-label="Risk ranking comparison chart"></canvas>
+            <div class="chart-legend" aria-hidden="true">
+              <span class="legend-item"><span class="swatch swatch--primary"></span> Risk ranking quality</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer class="page-footer muted">
+        Architecture, API, metric definitions, and MLOps implementation — see the project README.
+      </footer>
+    </div>
+
+    <script src="/assets/app.js"></script>
+  </body>
+</html>

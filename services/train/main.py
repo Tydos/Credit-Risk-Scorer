@@ -131,7 +131,10 @@ try:
 
             # Step 7: Register and promote model
             version = register_and_promote(
-                model=trained_model, test_fn=dummy_test, run_id=run_id
+                model=trained_model,
+                test_fn=dummy_test,
+                run_id=run_id,
+                input_dim=model_config.model_input_dim,
             )
             logging.info(f"Model registered with version: {version}")
 

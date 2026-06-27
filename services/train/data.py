@@ -12,7 +12,10 @@ def read_csv_dataset(
     if not file_path.exists():
         raise FileNotFoundError(f"File not found: {file_path}")
     try:
-        data = pd.read_csv(file_path, nrows=data_length)
+        if data_length is None:
+            data = pd.read_csv(file_path)
+        else:
+            data = pd.read_csv(file_path, nrows=data_length)
     except pd.errors.EmptyDataError as e:
         raise ValueError(f"CSV file is empty: {file_path}") from e
     except pd.errors.ParserError as e:

@@ -102,6 +102,22 @@ services:
         condition: service_healthy
     restart: "no"
 
+  baselines:
+    build:
+      context: .
+      dockerfile: services/train/train.dockerfile
+    command: ["python", "run_baselines.py"]
+    environment:
+      <<: *env
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+    volumes:
+      - ./dataset:/app/dataset:ro
+      - ./config:/app/config:ro
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    restart: "no"
+
   # inference server image
   inference:
     build:
@@ -114,6 +130,9 @@ services:
       - ./config:/app/config:ro
     ports:
       - "8000:8000"
+    depends_on:
+      mlflow:
+        condition: service_healthy
 
 volumes:
   postgres-data:

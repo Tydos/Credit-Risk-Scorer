@@ -31,13 +31,13 @@ def predict(
 
     try:
         input_features = request.features
-        inputs = torch.tensor(input_features, dtype=torch.float32)
+        inputs = torch.tensor(input_features, dtype=torch.float32).unsqueeze(0)
     except (ValueError, TypeError, RuntimeError) as e:
         raise ValueError(f"Invalid input features: {e}") from e
 
     start = time.perf_counter()
     with torch.no_grad():
-        outputs = model(inputs)
+        outputs = model(inputs).squeeze(-1)
     model_latency = time.perf_counter() - start
 
     probs = torch.sigmoid(outputs)
