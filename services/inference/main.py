@@ -5,11 +5,11 @@ import tempfile
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-
+import secrets
 import dagshub
 import mlflow.pytorch
 import torch
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Header, Request
 from fastapi.responses import HTMLResponse
 from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
@@ -40,6 +40,7 @@ def _load_model(client: MlflowClient, model_name: str):
 
 
 def _load_preprocessing(client: MlflowClient, model_name: str, version: int):
+    """Gets the scaler and the encoder the prod model was trained on"""
     try:
         run_id = client.get_model_version(model_name, str(version)).run_id
     except Exception as exc:
@@ -61,7 +62,20 @@ def _load_preprocessing(client: MlflowClient, model_name: str, version: int):
     logging.info("Loaded preprocessing artifacts from run %s", run_id)
     return scaler, encoders
 
+def _require_ready(request: Request) -> None:
+    if request.app.state.model is None:
+        raise HTTPException(status_code=503, detail="Model not loaded")
+    if request.app.state.scaler is None:
+        raise HTTPException(status_code=503, detail="Preprocessing artifacts not loaded")
 
+def _require_admin(x_api_key:str = Header(...)) -> bool:
+    """reload route is protected by a admin key"""
+    expected = os.getenv("ADMIN","")
+    if not expected or not secrets.compare_digest(x_api_key,expected):
+        raise HTTPException(status_code=403,detail="Wrong key")
+
+    return True
+    
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     dagshub.init(
@@ -69,6 +83,14 @@ async def lifespan(app: FastAPI):
         repo_name=os.getenv("DAGSHUB_REPO_NAME", "credit-scorer"),
         mlflow=True,
     )
+
+    # load the UI once on startup
+    html = (STATIC_DIR / "index.html").read_text()
+    css = (STATIC_DIR / "styles.css").read_text()
+    js = (STATIC_DIR / "app.js").read_text()
+    html = html.replace('<link rel="stylesheet" href="/assets/styles.css" />', f"<style>{css}</style>")
+    html = html.replace('<script src="/assets/app.js"></script>', f"<script>{js}</script>")
+    app.state.index_html = html
 
     config = load_config("src/config.yaml")
     app.state.config = config
@@ -105,21 +127,8 @@ app = FastAPI(lifespan=lifespan, title="Credit Risk Inference API")
 
 
 @app.get("/", response_class=HTMLResponse)
-def root():
-    html = (STATIC_DIR / "index.html").read_text()
-    css = (STATIC_DIR / "styles.css").read_text()
-    js = (STATIC_DIR / "app.js").read_text()
-    html = html.replace('<link rel="stylesheet" href="/assets/styles.css" />', f"<style>{css}</style>")
-    html = html.replace('<script src="/assets/app.js"></script>', f"<script>{js}</script>")
-    return html
-
-
-def _require_ready(request: Request) -> None:
-    if request.app.state.model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-    if request.app.state.scaler is None:
-        raise HTTPException(status_code=503, detail="Preprocessing artifacts not loaded")
-
+def root(request: Request):
+      return HTMLResponse(request.app.state.index_html)
 
 @app.get("/schema")
 def schema(request: Request):
@@ -131,6 +140,24 @@ def schema(request: Request):
         "prediction_values": {"1": "paid_back", "0": "default"},
     }
 
+@app.get("/reload",status_code=200,dependencies=[Depends(_require_admin)])
+def reload_model(request:Request):
+    """Hot reload a model """
+    config = request.app.state.config
+    try:
+        client = MlflowClient()
+        model, version, uri = _load_model(client,config.mlflow.model_name)
+        scaler, encoders = _load_preprocessing(client, config.mlflow.model_name,version)
+    except RuntimeError as re:
+        raise HTTPException(status_code=503,detail=f"Could not reload due to {re}")
+    
+    request.app.state.model = model
+    request.app.state.model_version = version
+    request.app.state.model_uri = uri
+    request.app.state.scaler = scaler
+    request.app.state.encoders = encoders
+    logging.info("Model reloaded — now serving v%s", version)
+    return {"status": "reloaded", "model_version": version, "model_uri": uri}
 
 @app.post("/predict", status_code=200)
 def predict_endpoint(payload: LoanApplicationPayload, request: Request):
@@ -160,11 +187,8 @@ def predict_endpoint(payload: LoanApplicationPayload, request: Request):
         "prediction_label": "paid_back" if pred == 1 else "default",
         "paid_back_probability": prob,
         "default_probability": round(1 - prob, 4),
-        "inference_latency_sec": round(model_latency, 4),
+        "inference_latency_ms": round(model_latency*1000, 2),
         "model_version": request.app.state.model_version,
-        "model_uri": request.app.state.model_uri,
-        "model_name": request.app.state.model_name,
-        "application": application,
     }
 
 
@@ -190,7 +214,7 @@ def health_check(request: Request):
 
 
 @app.get("/results")
-def training_baselines(request: Request):
+def results(request: Request):
     try:
         client = MlflowClient()
         experiment = client.get_experiment_by_name(
