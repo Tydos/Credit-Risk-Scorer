@@ -2,7 +2,6 @@
 # Runs: python -m src.main
 # Expects volumes from docker-compose.yml:
 #   ./dataset:/app/dataset:ro
-#   ./config:/app/config:ro
 
 FROM python:3.11-slim
 
@@ -20,4 +19,4 @@ RUN pip install --no-cache-dir --upgrade pip && \
 COPY services/train/ .
 COPY src/ src/
 
-CMD ["python", "main.py"]
+ENTRYPOINT ["python", "train.py"]

@@ -2,7 +2,7 @@ fastapi
 uvicorn[standard]
 pydantic
 mlflow
-boto3
+dagshub
 numpy
 pandas
 scikit-learn

@@ -22,7 +22,6 @@ class PyTorchConfig(BaseModel):
 
 
 class MLflowConfig(BaseModel):
-    tracking_uri: str
     experiment_name: str
     model_name: str
     model_uri: str

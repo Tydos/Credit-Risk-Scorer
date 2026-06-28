@@ -1,48 +1,62 @@
 import logging
-from pathlib import Path
-from typing import Optional
+from dataclasses import dataclass
 
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+
+from src.config import ValidateConfig, load_config
+from src.preprocessing import process_data
 
 
-def read_csv_dataset(
-    file_path: Path, data_length: Optional[int] = None
-) -> pd.DataFrame:
-    if not file_path.exists():
-        raise FileNotFoundError(f"File not found: {file_path}")
-    try:
-        if data_length is None:
-            data = pd.read_csv(file_path)
-        else:
-            data = pd.read_csv(file_path, nrows=data_length)
-    except pd.errors.EmptyDataError as e:
-        raise ValueError(f"CSV file is empty: {file_path}") from e
-    except pd.errors.ParserError as e:
-        raise ValueError(f"Error parsing CSV file: {file_path}") from e
-
-    logging.info(f"Read {data.shape[0]} rows from {file_path}")
-    return data
+@dataclass
+class PreparedData:
+    config: ValidateConfig
+    trainset: pd.DataFrame
+    valset: pd.DataFrame
+    testset: pd.DataFrame
+    scaler: StandardScaler
+    encoders: dict[str, OrdinalEncoder]
 
 
-def split_dataset(dataset, target, test_size1, test_size2, is_stratify, random_state):
-    trainset, tempset = train_test_split(
-        dataset,
-        test_size=test_size1,
-        stratify=dataset[target] if is_stratify else None,
-        random_state=random_state,
+def load_and_prepare_data(config_path: str = "src/config.yaml") -> PreparedData:
+    config = load_config(config_path)
+    dc = config.dataset
+
+    df = pd.read_csv("dataset/train.csv", nrows=dc.data_length)
+    logging.info("Data loaded: %s rows", len(df))
+
+    trainset, temp = train_test_split(
+        df,
+        test_size=dc.test_size_1,
+        stratify=df[dc.target_column] if dc.stratify else None,
+        random_state=dc.random_state,
     )
-
     valset, testset = train_test_split(
-        tempset,
-        test_size=test_size2,
-        stratify=tempset[target] if is_stratify else None,
-        random_state=random_state,
+        temp,
+        test_size=dc.test_size_2,
+        stratify=temp[dc.target_column] if dc.stratify else None,
+        random_state=dc.random_state,
+    )
+    logging.info("Split — train: %d, val: %d, test: %d", len(trainset), len(valset), len(testset))
+
+    target = dc.target_column
+    logging.info(
+        "Class balance — paid_back rate: train=%.3f, val=%.3f, test=%.3f",
+        trainset[target].mean(), valset[target].mean(), testset[target].mean(),
     )
 
-    logging.info("Dataset split completed.")
-    logging.info(f"Original dataset size: {len(dataset)}")
-    logging.info(f"Train set size: {len(trainset)}")
-    logging.info(f"Validation set size: {len(valset)}")
-    logging.info(f"Test set size: {len(testset)}")
-    return trainset, valset, testset
+    logging.info("Fitting scaler and encoders on training set")
+    trainset, scaler, encoders = process_data(trainset, train=True)
+    valset, _, _ = process_data(valset, scaler, encoders, train=False)
+    testset, _, _ = process_data(testset, scaler, encoders, train=False)
+    logging.info("Preprocessing complete (%d encoders fitted)", len(encoders))
+
+    return PreparedData(
+        config=config,
+        trainset=trainset,
+        valset=valset,
+        testset=testset,
+        scaler=scaler,
+        encoders=encoders,
+    )

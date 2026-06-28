@@ -5,5 +5,5 @@ pydantic
 matplotlib
 tqdm
 mlflow
-boto3
+dagshub
 psutil

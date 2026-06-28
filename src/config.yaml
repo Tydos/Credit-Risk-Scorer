@@ -1,5 +1,5 @@
 dataset:
-  data_length: null  # null = full dataset
+  data_length: 1000
   target_column: loan_paid_back
   test_size_1: 0.3 #70:30 train test split
   test_size_2: 0.5 #50:50 split between 30% of test set as test and validation
@@ -16,10 +16,9 @@ pytorch:
   dropout: 0.1
 
 mlflow:
-  tracking_uri: http://localhost:5000
   experiment_name: LoanPayback
   model_name: LoanPayback
-  model_uri: models:/LoanPayback/Production
+  model_uri: models:/LoanPayback@champion
 
 inference:
   prediction_threshold: 0.5
