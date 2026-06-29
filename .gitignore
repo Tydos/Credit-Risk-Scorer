@@ -8,3 +8,4 @@ mlruns/
 .venv-eda
 .cursor
 dataset/
+.vscode
