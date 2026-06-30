@@ -1,8 +1,25 @@
+raw_dataset:
+  raw_path: dataset/accepted_2007_to_2018Q4.csv
+  output_path: dataset/train.csv
+  raw_target_column: loan_status
+  data_length: 10  # null = full dataset; keep a small int for dev runs
+
 dataset:
-  data_length: 1000
+  train_path: dataset/train.csv
   target_column: loan_paid_back
-  test_size_1: 0.3 #70:30 train test split
-  test_size_2: 0.5 #50:50 split between 30% of test set as test and validation
+  features:
+    - loan_amount
+    - annual_income
+    - debt_to_income_ratio
+    - credit_score
+    - interest_rate
+    - installment
+    - revol_util
+    - grade
+    - term
+    - loan_purpose
+  test_size_1: 0.3  # 70:30 train/temp split
+  test_size_2: 0.5  # 50:50 val/test split from the 30%
   stratify: true
   random_state: 11
 
@@ -11,7 +28,7 @@ pytorch:
   epoch: 10
   learning_rate: 0.0001
   weight_decay: 0.00001
-  model_input_dim: 11
+  model_input_dim: 10  # matches the 10 features above
   hidden_layers: [64, 32, 16]
   dropout: 0.1
 

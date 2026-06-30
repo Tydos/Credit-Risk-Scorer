@@ -13,9 +13,29 @@ application scoring, and exposes endpoints for prediction, model validation resu
 
 ---
 
+
+
+## Dataset
+
+The raw data is the **LendingClub Loan Data** publicly available on Kaggle:
+
+> [LendingClub Accepted & Rejected Loans 2007–2018 Q4](https://www.kaggle.com/datasets/wordsforthewise/lending-club)
+
+Download both files and place them in `dataset/`:
+
+
+Once downloaded, run the ETL to produce the cleaned training file:
+
+```bash
+python -m src.lending_club_etl
+python -m src.scripts.feature_analysis
+```
+
 ## How to run
 
-```python
+```bash
 python services/train/train.py
 uvicorn services.inference.main:app --reload
 ```
+
+---

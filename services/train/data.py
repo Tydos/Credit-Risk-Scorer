@@ -23,7 +23,7 @@ def load_and_prepare_data(config_path: str = "src/config.yaml") -> PreparedData:
     config = load_config(config_path)
     dc = config.dataset
 
-    df = pd.read_csv("dataset/train.csv", nrows=dc.data_length)
+    df = pd.read_csv("dataset/train.csv")
     logging.info("Data loaded: %s rows", len(df))
 
     trainset, temp = train_test_split(
