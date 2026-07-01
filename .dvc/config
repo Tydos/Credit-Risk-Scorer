@@ -1,4 +1,4 @@
 [core]
     remote = origin
 ['remote "origin"']
-    url = https://dagshub.com/pjawale/Credit-Risk-Scorer.dvc
+    url = https://dagshub.com/pjawale/credit-scorer.dvc
