@@ -1,31 +1,31 @@
 name: ETL Pipeline
-  on:
-    push:
-      branches: [main]
-      paths:
-        - "src/lending_club_etl.py"
-        - "src/config.yaml"
-        - "src/config.py"
-  jobs:
-    etl:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
-        - name: Set up Python
-          uses: actions/setup-python@v5
-          with:
-            python-version: "3.11"
-        - name: Install dependencies
-          run: pip install -r requirements.txt
-        - name: Configure DVC remote credentials
-          run: |
-            dvc remote modify origin --local auth basic
-            dvc remote modify origin --local user ${{ secrets.DAGSHUB_USER }}
-            dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
-        - name: Pull raw data from DagHub
-          run: dvc pull dataset/accepted_2007_to_2018Q4.csv
-        - name: Run ETL
-          run: python src/lending_club_etl.py
-        - name: Push outputs to DagHub
-          run: dvc push dataset/train.csv
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/lending_club_etl.py"
+      - "src/config.yaml"
+      - "src/config.py"
+jobs:
+  etl:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Configure DVC remote credentials
+        run: |
+          dvc remote modify origin --local auth basic
+          dvc remote modify origin --local user ${{ secrets.DAGSHUB_USER }}
+          dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
+      - name: Pull raw data from DagHub
+        run: dvc pull dataset/accepted_2007_to_2018Q4.csv
+      - name: Run ETL
+        run: python src/lending_club_etl.py
+      - name: Push outputs to DagHub
+        run: dvc push dataset/train.csv
