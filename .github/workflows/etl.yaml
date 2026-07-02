@@ -18,15 +18,31 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Debug secrets
+        run: |
+          if [ -z "${{ secrets.DAGSHUB_USER }}" ]; then
+            echo "DAGSHUB_USER is empty"
+            exit 1
+          fi
+      
+          if [ -z "${{ secrets.DAGSHUB_TOKEN }}" ]; then
+            echo "DAGSHUB_TOKEN is empty"
+            exit 1
+          fi
+      
+          echo "Secrets are present"
       - name: Install dependencies
         run: |
           pip install -r services/train/requirements.txt
           pip install dvc
       - name: Configure DVC remote credentials
+        env:
+          DVC_USER: ${{ secrets.DAGSHUB_USER }}
+          DVC_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
         run: |
           dvc remote modify origin --local auth basic
-          dvc remote modify origin --local user ${{ secrets.DAGSHUB_USER }}
-          dvc remote modify origin --local password ${{ secrets.DAGSHUB_TOKEN }}
+          dvc remote modify origin --local user "$DVC_USER"
+          dvc remote modify origin --local password "$DVC_TOKEN"
       - name: Pull raw data from DagHub
         run: dvc pull dataset/accepted_2007_to_2018Q4.csv
       - name: Run ETL
