@@ -2,21 +2,6 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
 
 
-FEATURE_COLUMNS = [
-    "annual_income",
-    "debt_to_income_ratio",
-    "credit_score",
-    "loan_amount",
-    "interest_rate",
-    "gender",
-    "marital_status",
-    "education_level",
-    "employment_status",
-    "loan_purpose",
-    "grade_subgrade",
-]
-
-
 def process_data(dataset, scaler=None, encoders=None, train=True):
     if "id" in dataset.columns:
         dataset = dataset.drop("id", axis=1)
@@ -49,7 +34,8 @@ def application_to_features(
     application: dict,
     scaler: StandardScaler,
     encoders: dict[str, OrdinalEncoder],
+    feature_columns: list[str],
 ) -> list[float]:
-    row = pd.DataFrame([application], columns=FEATURE_COLUMNS)
+    row = pd.DataFrame([application], columns=feature_columns)
     processed, _, _ = process_data(row, scaler=scaler, encoders=encoders, train=False)
     return processed.astype("float32").values.flatten().tolist()

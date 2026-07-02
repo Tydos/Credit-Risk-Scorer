@@ -31,6 +31,14 @@ python -m src.lending_club_etl
 python -m src.scripts.feature_analysis
 ```
 
+## Data Versioning and Control
+
+```bash
+dvc pull          # download data
+dvc repro         # re-run ETL if config changed
+dvc push          # upload new data to remote
+```
+
 ## How to run
 
 ```bash

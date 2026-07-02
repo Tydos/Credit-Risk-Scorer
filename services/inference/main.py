@@ -15,7 +15,7 @@ from mlflow.exceptions import MlflowException
 from mlflow.tracking import MlflowClient
 
 from src.config import LoanApplicationPayload, load_config
-from src.preprocessing import FEATURE_COLUMNS, application_to_features
+from src.preprocessing import application_to_features
 
 logging.basicConfig(level=logging.INFO)
 
@@ -99,6 +99,7 @@ async def lifespan(app: FastAPI):
     app.state.model_version = None
     app.state.model_uri = None
     app.state.model_name = config.mlflow.model_name
+    app.state.feature_columns = config.dataset.features
     app.state.scaler = None
     app.state.encoders = None
 
@@ -133,7 +134,7 @@ def root(request: Request):
 @app.get("/schema")
 def schema(request: Request):
     return {
-        "features": FEATURE_COLUMNS,
+        "features": request.app.state.feature_columns,
         "preprocessing_available": request.app.state.scaler is not None,
         "prediction_threshold": request.app.state.config.inference.prediction_threshold,
         "target": "loan_paid_back",
@@ -166,7 +167,10 @@ def predict_endpoint(payload: LoanApplicationPayload, request: Request):
 
     try:
         features = application_to_features(
-            application, request.app.state.scaler, request.app.state.encoders
+            application,
+            request.app.state.scaler,
+            request.app.state.encoders,
+            request.app.state.feature_columns,
         )
     except Exception as exc:
         raise HTTPException(status_code=422, detail=f"Preprocessing failed: {exc}") from exc

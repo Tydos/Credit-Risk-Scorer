@@ -26,6 +26,9 @@ def load_and_prepare_data(config_path: str = "src/config.yaml") -> PreparedData:
     df = pd.read_csv("dataset/train.csv")
     logging.info("Data loaded: %s rows", len(df))
 
+    df = df[dc.features + [dc.target_column]]
+    logging.info("Feature columns selected: %s", dc.features)
+
     trainset, temp = train_test_split(
         df,
         test_size=dc.test_size_1,

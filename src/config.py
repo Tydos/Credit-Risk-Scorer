@@ -47,6 +47,7 @@ class ValidateConfig(BaseModel):
     inference: InferenceConfig
 
 
+
 def load_config(path: str | None) -> ValidateConfig:
     if path is None:
         raise ValueError("Config file path must be provided.")
