@@ -6,6 +6,8 @@ on:
       - "src/lending_club_etl.py"
       - "src/config.yaml"
       - "src/config.py"
+      - ".github/workflows/etl.yaml"
+  workflow_dispatch:
 jobs:
   etl:
     runs-on: ubuntu-latest
@@ -17,7 +19,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r services/train/requirements.txt
+          pip install dvc
       - name: Configure DVC remote credentials
         run: |
           dvc remote modify origin --local auth basic
